@@ -1,1 +1,7 @@
 streamlit
+geopandas
+matplotlib.pyplot 
+os
+folium
+requests
+pandas

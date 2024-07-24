@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import os
 import folium
 import requests
-import pandas as pd  # Import pandas
+import pandas as pd
 
 # URL API для отримання даних
 url = 'https://opendata-ajuntament.barcelona.cat/data/api/action/datastore_search?resource_id=8808bc24-e14c-45a5-9c24-5e67846f087a&limit=10000'
