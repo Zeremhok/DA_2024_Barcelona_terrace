@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import requests
+import streamlit as st
 
 # URL API для получения данных
 url = 'https://opendata-ajuntament.barcelona.cat/data/api/action/datastore_search?resource_id=8808bc24-e14c-45a5-9c24-5e67846f087a&limit=10000'
@@ -24,13 +25,15 @@ df2019_1 = df2019_1.dropna()  # Удаление строк с NaN
 df2019_1 = df2019_1[(df2019_1 != 0).all(1)]  # Удаление строк с нулевыми значениями
 
 # Выводим заголовок датасета
-print(df2019_1.head())
+st.write("Dataset Head:")
+st.write(df2019_1.head())
 
 # Группировка данных по району и типу разрешения
 grouped_data = df2019_1.groupby(['NOM_DISTRICTE', 'VIGENCIA']).size().reset_index(name='count')
 
 # Вывод сгруппированных данных
-print(grouped_data)
+st.write("Grouped Data:")
+st.write(grouped_data)
 
 # Определение цветовой палитры для каждого типа разрешения
 palette = {
@@ -66,5 +69,5 @@ plt.xticks(rotation=90)
 plt.ylabel('Count')
 plt.legend(title='Type of permission')
 
-# Отображение диаграммы
-plt.show()
+# Отображение диаграммы в Streamlit
+st.pyplot(plt)
