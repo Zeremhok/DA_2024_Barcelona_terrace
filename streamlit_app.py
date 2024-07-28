@@ -1,50 +1,70 @@
-import streamlit as st
-
-st.title("Barcelona terrace visualisation")
-st.write(
-    "Hello, DA community. This is my first project"
-)
-import geopandas as gpd
-import matplotlib.pyplot as plt
-import os
-import folium
-import requests
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import requests
 
-# URL API для отримання даних
+# URL API для получения данных
 url = 'https://opendata-ajuntament.barcelona.cat/data/api/action/datastore_search?resource_id=8808bc24-e14c-45a5-9c24-5e67846f087a&limit=10000'
 
-# Запит до API
+# Запрос к API
 response = requests.get(url)
 data = response.json()
 
-# Перевірка, чи запит був успішним
+# Проверка, был ли запрос успешным
 if data['success']:
-    # Отримання записів з JSON відповіді
+    # Получение записей из JSON ответа
     records = data['result']['records']
     
-    # Створення DataFrame з записів
+    # Создание DataFrame из записей
     df2019_1 = pd.DataFrame(records)
 
-# Чітаємо дані з датасету
-data = df2019_1
+# Фильтрация строк с пустыми значениями или нулевыми значениями в любом столбце
+df2019_1 = df2019_1.dropna()  # Удаление строк с NaN
+df2019_1 = df2019_1[(df2019_1 != 0).all(1)]  # Удаление строк с нулевыми значениями
 
-# Завантажуємо дані для візуалізації мапи
-gdf = gpd.read_file(gpd.datasets.get_path('naturalearth_cities'))
+# Выводим заголовок датасета
+print(df2019_1.head())
 
-barcelona_map = folium.Map([41.3947,2.1557], zoom_start=12.4, tiles='cartodbpositron')
-folium.GeoJson(gdf).add_to(barcelona_map)
+# Группировка данных по району и типу разрешения
+grouped_data = df2019_1.groupby(['NOM_DISTRICTE', 'VIGENCIA']).size().reset_index(name='count')
 
-# Функція для додавання маркерів на мапу
-def add_markers(map_obj, data_frame):
-    for _, row in data_frame.iterrows():
-        folium.Marker(
-            location=[row['LATITUD'], row['LONGITUD']],  # Задаємо звідки брати геодані
-            popup=row['NOM_DISTRICTE'],  
-        ).add_to(map_obj)
+# Вывод сгруппированных данных
+print(grouped_data)
 
-# Додаємо маркери на мапу
-add_markers(barcelona_map, df2019_1)
+# Определение цветовой палитры для каждого типа разрешения
+palette = {
+    'Anual': '#3498db',    # Синий
+    'Temporada': '#2ecc71' # Зеленый
+}
 
-# Візуалізація мапи
-barcelona_map
+# Настройка стиля диаграммы
+sns.set(style="whitegrid")
+
+# Создание диаграммы
+plt.figure(figsize=(20, 10))
+chart = sns.barplot(
+    x='NOM_DISTRICTE', 
+    y='count', 
+    hue='VIGENCIA', 
+    data=grouped_data,
+    palette=palette  # Указание цветовой палитры
+)
+
+# Добавление числовых подписей на барры
+for p in chart.patches:
+    chart.annotate(format(p.get_height(), '.0f'), 
+                   (p.get_x() + p.get_width() / 2., p.get_height()), 
+                   ha='center', va='center', 
+                   xytext=(0, 9), 
+                   textcoords='offset points')
+
+# Настройка подписей и заголовков
+plt.title('Number of terraces by blocks according to permission type')
+plt.xlabel('District')
+plt.xticks(rotation=90)
+plt.ylabel('Count')
+plt.legend(title='Type of permission')
+
+# Отображение диаграммы
+plt.show()

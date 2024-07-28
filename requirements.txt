@@ -1,7 +1,6 @@
 streamlit
-geopandas==0.14.4
-matplotlib.pyplot 
-os
-folium
-requests
+numpy
 pandas
+matplotlib.pyplot
+seaborn
+requests
